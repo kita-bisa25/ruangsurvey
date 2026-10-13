@@ -2,11 +2,11 @@
 session_start();
 
 if (!isset($_SESSION['admin_login']) || $_SESSION['admin_login'] !== true) {
-    header("Location: ../login.php");
+    header("Location: ../login.html");
     exit;
 }
 
-require_once "../koneksi.php";
+require_once "../koneksi.html";
 
 $pesan = "";
 
@@ -35,7 +35,7 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
         mysqli_stmt_close($stmt);
     }
 
-    header("Location: responses.php?msg=deleted");
+    header("Location: responses.html?msg=deleted");
     exit;
 }
 
@@ -121,12 +121,12 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
 <aside class="col-lg-2 admin-sidebar">
     <div class="fw-bold fs-5 mb-4"><span class="brand-mark">RS</span>Admin</div>
     <nav class="nav flex-lg-column">
-        <a class="nav-link" href="dashboard.php"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
-        <a class="nav-link active" href="responses.php"><i class="bi bi-table me-2"></i>Respons</a>
-        <a class="nav-link" href="kontak.php"><i class="bi bi-envelope me-2"></i>Pesan Masuk</a>
-        <a class="nav-link" href="galeri.php"><i class="bi bi-images me-2"></i>Galeri</a>
-        <a class="nav-link" href="panduan.php"><i class="bi bi-folder2-open me-2"></i>Kelola Artikel</a>
-        <a class="nav-link text-danger" href="../logout.php"><i class="bi bi-box-arrow-left me-2"></i>Keluar</a>
+        <a class="nav-link" href="dashboard.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+        <a class="nav-link active" href="responses.html"><i class="bi bi-table me-2"></i>Respons</a>
+        <a class="nav-link" href="kontak.html"><i class="bi bi-envelope me-2"></i>Pesan Masuk</a>
+        <a class="nav-link" href="galeri.html"><i class="bi bi-images me-2"></i>Galeri</a>
+        <a class="nav-link" href="panduan.html"><i class="bi bi-folder2-open me-2"></i>Kelola Artikel</a>
+        <a class="nav-link text-danger" href="../logout.html"><i class="bi bi-box-arrow-left me-2"></i>Keluar</a>
     </nav>
 </aside>
 
@@ -181,8 +181,8 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
                             <td><?= htmlspecialchars($row['pengaruh_kehidupan']) ?></td>
                             <td><?= date('d/m/Y', strtotime($row['created_at'])) ?></td>
                             <td class="text-end">
-                                <a href="responses.php?edit=<?= (int) $row['id_jawaban'] ?>" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
-                                <a href="responses.php?delete=<?= (int) $row['id_jawaban'] ?>" class="btn btn-sm btn-outline-danger" title="Hapus" onclick="return confirm('Yakin ingin menghapus data ini?')"><i class="bi bi-trash"></i></a>
+                                <a href="responses.html?edit=<?= (int) $row['id_jawaban'] ?>" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                                <a href="responses.html?delete=<?= (int) $row['id_jawaban'] ?>" class="btn btn-sm btn-outline-danger" title="Hapus" onclick="return confirm('Yakin ingin menghapus data ini?')"><i class="bi bi-trash"></i></a>
                             </td>
                         </tr>
                     <?php endwhile; ?>
@@ -223,7 +223,7 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
         <form class="modal-content" method="POST">
             <div class="modal-header">
                 <h2 class="modal-title h5">Edit Respons Survey</h2>
-                <a href="responses.php" class="btn-close"></a>
+                <a href="responses.html" class="btn-close"></a>
             </div>
             <div class="modal-body">
                 <input type="hidden" name="edit_id" value="<?= (int) $editData['id_jawaban'] ?>">
@@ -312,7 +312,7 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
                 </div>
             </div>
             <div class="modal-footer">
-                <a href="responses.php" class="btn btn-light">Batal</a>
+                <a href="responses.html" class="btn btn-light">Batal</a>
                 <button type="submit" class="btn btn-primary"><i class="bi bi-save me-2"></i>Simpan Perubahan</button>
             </div>
         </form>

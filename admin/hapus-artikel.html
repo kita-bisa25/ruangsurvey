@@ -2,11 +2,11 @@
 session_start();
 
 if (!isset($_SESSION['admin_login']) || $_SESSION['admin_login'] !== true) {
-    header("Location: ../login.php");
+    header("Location: ../login.html");
     exit;
 }
 
-require_once "../koneksi.php";
+require_once "../koneksi.html";
 
 if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     $id = (int) $_GET['id'];
@@ -26,6 +26,6 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     mysqli_query($koneksi, "DELETE FROM artikel WHERE id_artikel = $id");
 }
 
-header("Location: panduan.php?msg=deleted");
+header("Location: panduan.html?msg=deleted");
 exit;
 ?>

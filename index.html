@@ -9,6 +9,14 @@ if ($queryTotal) {
     $totalRespondents = (int) $dataTotal['total'];
 }
 
+// TOTAL JAWABAN SURVEY (untuk basis persentase yang konsisten)
+$totalJawaban = 0;
+$queryTotalJawaban = mysqli_query($koneksi, "SELECT COUNT(*) AS total FROM survey_jawaban");
+if ($queryTotalJawaban) {
+    $dataTotalJawaban = mysqli_fetch_assoc($queryTotalJawaban);
+    $totalJawaban = (int) $dataTotalJawaban['total'];
+}
+
 // PLATFORM PALING POPULER
 $popularPlatform = "-";
 $queryPlatform = mysqli_query($koneksi, "SELECT platform_utama, COUNT(*) AS jumlah FROM survey_jawaban WHERE platform_utama IS NOT NULL AND platform_utama != '' GROUP BY platform_utama ORDER BY jumlah DESC LIMIT 1");
@@ -24,7 +32,7 @@ if ($queryPositive) {
     $dataPositive = mysqli_fetch_assoc($queryPositive);
     $positiveCount = (int) $dataPositive['jumlah'];
 }
-$positivePercent = ($totalRespondents > 0) ? round(($positiveCount / $totalRespondents) * 100) : 0;
+$positivePercent = ($totalJawaban > 0) ? round(($positiveCount / $totalJawaban) * 100) : 0;
 
 // DAILY USERS
 $dailyUsers = 0;
@@ -38,11 +46,14 @@ if ($queryDaily) {
 $queryArtikel = mysqli_query($koneksi, "SELECT id_artikel, judul, link, tipe, file FROM artikel ORDER BY id_artikel DESC");
 
 // PANDUAN (ambil gambar panduan terbaru)
+$panduan = null;
 $queryPanduan = mysqli_query($koneksi, "SELECT * FROM panduan ORDER BY id_panduan DESC LIMIT 1");
-$panduan = mysqli_fetch_assoc($queryPanduan);
+if ($queryPanduan && mysqli_num_rows($queryPanduan) > 0) {
+    $panduan = mysqli_fetch_assoc($queryPanduan);
+}
 
 // GALERI - Ambil 3 foto terbaru dari tabel galeri
-$queryGaleri = mysqli_query($koneksi, "SELECT * FROM galeri ORDER BY id_galeri DESC LIMIT 3");
+$queryGaleri = mysqli_query($koneksi, "SELECT id_galeri, gambar, judul, keterangan FROM galeri ORDER BY id_galeri DESC LIMIT 3");
 ?>
 
 <!doctype html>
@@ -271,11 +282,11 @@ $queryGaleri = mysqli_query($koneksi, "SELECT * FROM galeri ORDER BY id_galeri D
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav ms-auto align-items-lg-center">
-                <li class="nav-item"><a class="nav-link" href="produk.php">Produk</a></li>
-                <li class="nav-item"><a class="nav-link" href="survey.php">Isi Survey</a></li>
-                <li class="nav-item"><a class="nav-link" href="tentang-kami.php">Tentang Kami</a></li>
-                <li class="nav-item"><a class="nav-link" href="kontak.php">Kontak</a></li>
-                <li class="nav-item"><a class="nav-link" href="visi-misi.php">Visi & Misi</a></li>
+                <li class="nav-item"><a class="nav-link" href="produk.html">Produk</a></li>
+                <li class="nav-item"><a class="nav-link" href="survey.html">Isi Survey</a></li>
+                <li class="nav-item"><a class="nav-link" href="tentang-kami.html">Tentang Kami</a></li>
+                <li class="nav-item"><a class="nav-link" href="kontak.html">Kontak</a></li>
+                <li class="nav-item"><a class="nav-link" href="visi-misi.html">Visi & Misi</a></li>
             </ul>
         </div>
     </div>
@@ -284,7 +295,7 @@ $queryGaleri = mysqli_query($koneksi, "SELECT * FROM galeri ORDER BY id_galeri D
 <div class="company-wrapper">
 
     <!-- HEADER (disembunyikan) -->
-    <header class="company-header" style="display:none;">
+    <header class="company-header">
         <div class="company-header-top">
             <div class="header-left">
                 <div class="logo-box">
@@ -301,11 +312,11 @@ $queryGaleri = mysqli_query($koneksi, "SELECT * FROM galeri ORDER BY id_galeri D
         </div>
         <nav class="company-nav">
             <ul>
-                <li><a href="produk.php">Produk Kami</a></li>              
-                <li><a href="survey.php">Survey</a></li>
-                <li><a href="tentang-kami.php">Tentang Kami</a></li>
-                <li><a href="kontak.php">Kontak</a></li>
-                <li><a href="visi-misi.php">Visi & Misi</a></li>
+                <li><a href="produk.html">Produk Kami</a></li>              
+                <li><a href="survey.html">Survey</a></li>
+                <li><a href="tentang-kami.html">Tentang Kami</a></li>
+                <li><a href="kontak.html">Kontak</a></li>
+                <li><a href="visi-misi.html">Visi & Misi</a></li>
             </ul>
         </nav>
     </header>
@@ -328,10 +339,16 @@ $queryGaleri = mysqli_query($koneksi, "SELECT * FROM galeri ORDER BY id_galeri D
                     <ul class="sidebar-list mt-2">
                         <?php if ($queryArtikel && mysqli_num_rows($queryArtikel) > 0): ?>
                             <?php while ($artikel = mysqli_fetch_assoc($queryArtikel)): ?>
+                                <?php
+                                    // Handle link: jika link kosong, fallback ke file upload
+                                    $linkArtikel = !empty($artikel['link']) 
+                                        ? $artikel['link'] 
+                                        : 'uploads/artikel/' . ($artikel['file'] ?? '');
+                                ?>
                                 <li>
-                                    <a href="<?= htmlspecialchars($artikel['link'] ?? 'uploads/artikel/'. $artikel['file']) ?>" target="_blank" rel="noopener noreferrer">
+                                    <a href="<?= htmlspecialchars($linkArtikel) ?>" target="_blank" rel="noopener noreferrer">
                                         <i class="bi bi-file-earmark-text me-1"></i>
-                                        <?= htmlspecialchars($artikel['judul']) ?>
+                                        <?= htmlspecialchars($artikel['judul'] ?? 'Tanpa Judul') ?>
                                     </a>
                                 </li>
                             <?php endwhile; ?>
@@ -353,7 +370,7 @@ $queryGaleri = mysqli_query($koneksi, "SELECT * FROM galeri ORDER BY id_galeri D
                 <div class="collapse" id="galeriMenu">
                     <ul class="sidebar-list mt-2">
                         <li>
-                            <a href="galeri.php?kategori=survey">
+                            <a href="galeri.html?kategori=survey">
                                 <i class="bi bi-clipboard-check"></i> Kegiatan Survey
                             </a>
                         </li>
@@ -373,7 +390,7 @@ $queryGaleri = mysqli_query($koneksi, "SELECT * FROM galeri ORDER BY id_galeri D
                     <h2>Ruang Survey</h2>
                     <p>Platform survey yang dirancang untuk mengumpulkan, mengelola, dan menganalisis data penggunaan media sosial secara sederhana, terstruktur, dan mudah dipahami.</p>
                     <div class="mt-4">
-                        <a href="survey.php" class="btn btn-light btn-lg"><i class="bi bi-send me-2"></i>Isi Survey</a>
+                        <a href="survey.html" class="btn btn-light btn-lg"><i class="bi bi-send me-2"></i>Isi Survey</a>
                         <a href="#statistik" class="btn btn-outline-light btn-lg ms-2"><i class="bi bi-bar-chart me-2"></i>Lihat Statistik</a>
                     </div>
                 </div>
@@ -386,7 +403,7 @@ $queryGaleri = mysqli_query($koneksi, "SELECT * FROM galeri ORDER BY id_galeri D
                 <div class="stat-grid">
                     <div class="stat-card">
                         <small>Total Responden</small>
-                        <div class="stat-number"><?= number_format($totalRespondents); ?></div>
+                        <div class="stat-number"><?= number_format($totalRespondents, 0, ',', '.'); ?></div>
                     </div>
                     <div class="stat-card">
                         <small>Platform Terpopuler</small>
@@ -398,7 +415,7 @@ $queryGaleri = mysqli_query($koneksi, "SELECT * FROM galeri ORDER BY id_galeri D
                     </div>
                     <div class="stat-card">
                         <small>Pengguna Harian</small>
-                        <div class="stat-number"><?= number_format($dailyUsers); ?></div>
+                        <div class="stat-number"><?= number_format($dailyUsers, 0, ',', '.'); ?></div>
                     </div>
                 </div>
 
@@ -421,7 +438,8 @@ $queryGaleri = mysqli_query($koneksi, "SELECT * FROM galeri ORDER BY id_galeri D
                 <div class="galeri-grid">
                     <?php while ($foto = mysqli_fetch_assoc($queryGaleri)): ?>
                     <div class="galeri-item">
-                        <img src="uploads/galeri/<?= htmlspecialchars($foto['gambar']) ?>" alt="<?= htmlspecialchars($foto['judul'] ?? 'Foto Galeri') ?>">
+                        <img src="uploads/galeri/<?= htmlspecialchars($foto['gambar'] ?? '') ?>" 
+                             alt="<?= htmlspecialchars($foto['judul'] ?? 'Foto Galeri') ?>">
                         <div class="galeri-overlay">
                             <h6><?= htmlspecialchars($foto['judul'] ?? 'Kegiatan Survey') ?></h6>
                             <small><?= htmlspecialchars($foto['keterangan'] ?? '') ?></small>
@@ -430,7 +448,7 @@ $queryGaleri = mysqli_query($koneksi, "SELECT * FROM galeri ORDER BY id_galeri D
                     <?php endwhile; ?>
                 </div>
                 <div class="galeri-view-all">
-                    <a href="galeri.php"><i class="bi bi-arrow-right"></i> Lihat Semua Galeri</a>
+                    <a href="galeri.html"><i class="bi bi-arrow-right"></i> Lihat Semua Galeri</a>
                 </div>
                 <?php else: ?>
                 <div class="alert alert-info">
@@ -440,18 +458,20 @@ $queryGaleri = mysqli_query($koneksi, "SELECT * FROM galeri ORDER BY id_galeri D
             </section>
 
             <!-- PANDUAN -->
-            <?php if ($panduan): ?>
+            <?php if (!empty($panduan)): ?>
             <section class="content-section">
                 <h2>Panduan Penggunaan</h2>
                 <div class="panduan-card">
                     <div class="row align-items-center">
                         <div class="col-md-4">
-                            <img src="uploads/panduan/<?= htmlspecialchars($panduan['gambar']) ?>" alt="<?= htmlspecialchars($panduan['judul']) ?>" class="img-fluid">
+                            <img src="uploads/panduan/<?= htmlspecialchars($panduan['gambar'] ?? '') ?>" 
+                                 alt="<?= htmlspecialchars($panduan['judul'] ?? 'Panduan') ?>" 
+                                 class="img-fluid">
                         </div>
                         <div class="col-md-8">
-                            <h4><?= htmlspecialchars($panduan['judul']) ?></h4>
-                            <p class="text-muted"><?= htmlspecialchars($panduan['deskripsi']) ?></p>
-                            <a href="panduan.php" class="btn btn-primary btn-sm">Lihat Panduan Lengkap</a>
+                            <h4><?= htmlspecialchars($panduan['judul'] ?? '') ?></h4>
+                            <p class="text-muted"><?= htmlspecialchars($panduan['deskripsi'] ?? '') ?></p>
+                            <a href="panduan.html" class="btn btn-primary btn-sm">Lihat Panduan Lengkap</a>
                         </div>
                     </div>
                 </div>
@@ -463,7 +483,7 @@ $queryGaleri = mysqli_query($koneksi, "SELECT * FROM galeri ORDER BY id_galeri D
                 <h2>Tentang Ruang Survey</h2>
                 <p>Ruang Survey merupakan sebuah sistem informasi berbasis web yang dibuat untuk membantu proses pengumpulan data mengenai penggunaan media sosial.</p>
                 <p>Sistem ini dibuat sebagai sarana untuk memperoleh data dari masyarakat atau responden secara terstruktur. Data yang dikumpulkan kemudian dapat digunakan untuk melihat pola penggunaan media sosial, kebiasaan pengguna, tujuan penggunaan, serta dampaknya terhadap kehidupan sehari-hari.</p>
-                <a href="tentang-kami.php" class="btn btn-outline-primary">Baca Selengkapnya</a>
+                <a href="tentang-kami.html" class="btn btn-outline-primary">Baca Selengkapnya</a>
             </section>
 
         </main>
@@ -479,3 +499,4 @@ $queryGaleri = mysqli_query($koneksi, "SELECT * FROM galeri ORDER BY id_galeri D
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+<?php mysqli_close($koneksi); ?>

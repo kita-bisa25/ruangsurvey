@@ -1,10 +1,10 @@
 <?php
 session_start();
 if (!isset($_SESSION['admin_login']) || $_SESSION['admin_login'] !== true) {
-    header("Location: ../login.php");
+    header("Location: ../login.html");
     exit;
 }
-require_once "../koneksi.php";
+require_once "../koneksi.html";
 
 // Buat tabel otomatis
 mysqli_query($koneksi, "CREATE TABLE IF NOT EXISTS galeri (
@@ -94,12 +94,12 @@ $edit = isset($_GET['edit']) ? mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT
 <aside class="col-lg-2 admin-sidebar">
     <div class="fw-bold fs-5 mb-4"><span class="brand-mark">RS</span>Admin</div>
     <nav class="nav flex-lg-column">
-        <a class="nav-link" href="dashboard.php"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
-        <a class="nav-link" href="responses.php"><i class="bi bi-table me-2"></i>Respons</a>
-        <a class="nav-link" href="kontak.php"><i class="bi bi-table me-2"></i>Pesan Masuk</a>
-        <a class="nav-link active" href="galeri.php"><i class="bi bi-images me-2"></i>Galeri</a>
-        <a class="nav-link" href="panduan.php"><i class="bi bi-folder2-open me-2"></i>Kelola Artikel</a>
-        <a class="nav-link text-danger" href="../logout.php"><i class="bi bi-box-arrow-left me-2"></i>Keluar</a>
+        <a class="nav-link" href="dashboard.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+        <a class="nav-link" href="responses.html"><i class="bi bi-table me-2"></i>Respons</a>
+        <a class="nav-link" href="kontak.html"><i class="bi bi-table me-2"></i>Pesan Masuk</a>
+        <a class="nav-link active" href="galeri.html"><i class="bi bi-images me-2"></i>Galeri</a>
+        <a class="nav-link" href="panduan.html"><i class="bi bi-folder2-open me-2"></i>Kelola Artikel</a>
+        <a class="nav-link text-danger" href="../logout.html"><i class="bi bi-box-arrow-left me-2"></i>Keluar</a>
     </nav>
 </aside>
 
