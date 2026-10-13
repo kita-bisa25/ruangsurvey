@@ -1,0 +1,262 @@
+<?php
+session_start();
+
+if (!isset($_SESSION['admin_login']) || $_SESSION['admin_login'] !== true) {
+    header("Location: ../login.php");
+    exit;
+}
+
+// Perbaiki require_once
+require_once "../koneksi.php";
+
+$pesan = "";
+
+/* ============================
+   PROSES TAMBAH ARTIKEL
+============================ */
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $judul = trim($_POST['judul'] ?? '');
+    $tipe = $_POST['tipe'] ?? '';
+
+    if ($judul === '') {
+        $pesan = '<div class="alert alert-danger">Judul wajib diisi.</div>';
+    } elseif (!in_array($tipe, ['link', 'file'])) {
+        $pesan = '<div class="alert alert-danger">Jenis tidak valid.</div>';
+    } else {
+        // JIKA LINK
+        if ($tipe === 'link') {
+            $link = trim($_POST['link'] ?? '');
+            if ($link === '') {
+                $pesan = '<div class="alert alert-danger">Link wajib diisi.</div>';
+            } elseif (!filter_var($link, FILTER_VALIDATE_URL)) {
+                $pesan = '<div class="alert alert-danger">URL tidak valid.</div>';
+            } else {
+                $stmt = mysqli_prepare($koneksi, "INSERT INTO artikel (judul, tipe, link, file) VALUES (?, 'link', ?, NULL)");
+                mysqli_stmt_bind_param($stmt, "ss", $judul, $link);
+                if (mysqli_stmt_execute($stmt)) {
+                    $pesan = '<div class="alert alert-success">Link berhasil ditambahkan!</div>';
+                } else {
+                    $pesan = '<div class="alert alert-danger">Gagal menambahkan link.</div>';
+                }
+                mysqli_stmt_close($stmt);
+            }
+        }
+        // JIKA FILE
+        elseif ($tipe === 'file') {
+            if (!isset($_FILES['file_artikel']) || $_FILES['file_artikel']['error'] !== UPLOAD_ERR_OK) {
+                $pesan = '<div class="alert alert-danger">Silakan pilih file.</div>';
+            } else {
+                $file = $_FILES['file_artikel'];
+                $namaAsli = $file['name'];
+                $ukuran = $file['size'];
+                $tmpName = $file['tmp_name'];
+                $ekstensi = strtolower(pathinfo($namaAsli, PATHINFO_EXTENSION));
+                $formatDiizinkan = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'];
+                $maksimalUkuran = 10 * 1024 * 1024;
+
+                if (!in_array($ekstensi, $formatDiizinkan)) {
+                    $pesan = '<div class="alert alert-danger">Format file tidak diperbolehkan. Gunakan PDF, DOC, DOCX, PPT, PPTX, XLS, atau XLSX.</div>';
+                } elseif ($ukuran > $maksimalUkuran) {
+                    $pesan = '<div class="alert alert-danger">Ukuran file maksimal 10 MB.</div>';
+                } else {
+                    $folderUpload = "../uploads/artikel/";
+                    if (!is_dir($folderUpload)) mkdir($folderUpload, 0777, true);
+                    $namaFile = uniqid('artikel_', true) . '.' . $ekstensi;
+                    $lokasiFile = $folderUpload . $namaFile;
+
+                    if (move_uploaded_file($tmpName, $lokasiFile)) {
+                        $stmt = mysqli_prepare($koneksi, "INSERT INTO artikel (judul, tipe, link, file) VALUES (?, 'file', NULL, ?)");
+                        mysqli_stmt_bind_param($stmt, "ss", $judul, $namaFile);
+                        if (mysqli_stmt_execute($stmt)) {
+                            $pesan = '<div class="alert alert-success">File berhasil diupload!</div>';
+                        } else {
+                            unlink($lokasiFile);
+                            $pesan = '<div class="alert alert-danger">Gagal menyimpan data file.</div>';
+                        }
+                        mysqli_stmt_close($stmt);
+                    } else {
+                        $pesan = '<div class="alert alert-danger">Gagal mengupload file.</div>';
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* ============================
+   DATA ARTIKEL
+============================ */
+$queryArtikel = mysqli_query($koneksi, "SELECT * FROM artikel ORDER BY id_artikel DESC");
+
+/* ============================
+   TOTAL RESPONDEN
+============================ */
+$queryTotal = mysqli_query($koneksi, "SELECT COUNT(*) AS total FROM responden");
+$totalRespondents = $queryTotal ? mysqli_fetch_assoc($queryTotal)['total'] : 0;
+
+/* ============================
+   PLATFORM PALING POPULER
+============================ */
+$queryPlatform = mysqli_query($koneksi, "SELECT platform_utama, COUNT(*) AS jumlah FROM survey_jawaban GROUP BY platform_utama ORDER BY jumlah DESC LIMIT 1");
+$popularPlatform = "-";
+if ($queryPlatform && mysqli_num_rows($queryPlatform) > 0) {
+    $platformData = mysqli_fetch_assoc($queryPlatform);
+    $popularPlatform = $platformData['platform_utama'];
+}
+
+/* ============================
+   PERSENTASE DAMPAK POSITIF
+============================ */
+$queryPositive = mysqli_query($koneksi, "SELECT COUNT(*) AS jumlah FROM survey_jawaban WHERE pengaruh_kehidupan IN ('Sangat Positif', 'Positif')");
+$positiveCount = $queryPositive ? mysqli_fetch_assoc($queryPositive)['jumlah'] : 0;
+$positivePercent = $totalRespondents > 0 ? round(($positiveCount / $totalRespondents) * 100) : 0;
+
+/* ============================
+   DAILY USERS
+============================ */
+$queryDaily = mysqli_query($koneksi, "SELECT COUNT(*) AS jumlah FROM survey_jawaban WHERE frekuensi = 'Hampir setiap saat'");
+$dailyUsers = $queryDaily ? mysqli_fetch_assoc($queryDaily)['jumlah'] : 0;
+?>
+
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Materi & Referensi | Ruang Survey</title>
+    <link rel="icon" type="image/x-icon" href="/ruang-survey/favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="../assets/css/style.css" rel="stylesheet">
+</head>
+<body class="admin-layout">
+
+<div class="container-fluid">
+<div class="row">
+
+<!-- SIDEBAR -->
+<aside class="col-lg-2 admin-sidebar">
+    <div class="fw-bold fs-5 mb-4"><span class="brand-mark">RS</span>Admin</div>
+    <nav class="nav flex-lg-column">
+        <a class="nav-link" href="dashboard.php"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+        <a class="nav-link" href="responses.php"><i class="bi bi-table me-2"></i>Respons</a>
+        <a class="nav-link" href="kontak.php"><i class="bi bi-envelope me-2"></i>Pesan Masuk</a>
+        <a class="nav-link" href="galeri.php"><i class="bi bi-images me-2"></i>Galeri</a>
+        <a class="nav-link active" href="panduan.php"><i class="bi bi-folder2-open me-2"></i>Kelola Artikel</a>
+        <a class="nav-link text-danger" href="../logout.php"><i class="bi bi-box-arrow-left me-2"></i>Keluar</a>
+    </nav>
+</aside>
+
+<!-- CONTENT -->
+<main class="col-lg-10 admin-content">
+    <h1 class="fw-bold mb-1">Kelola Materi & Referensi</h1>
+    <p class="muted mb-4">Tambahkan link artikel atau upload dokumen untuk ditampilkan kepada pengguna.</p>
+
+    <?= $pesan ?>
+
+    <!-- FORM -->
+    <div class="data-panel mb-4">
+        <h2 class="h5 fw-bold mb-3">Tambah Materi / Referensi</h2>
+        <form method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label">Judul</label>
+                <input type="text" name="judul" class="form-control" placeholder="Contoh: Panduan Pengisian Survey" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Jenis</label>
+                <select name="tipe" id="tipe" class="form-select" required onchange="ubahJenis()">
+                    <option value="">-- Pilih Jenis --</option>
+                    <option value="link">Link / URL</option>
+                    <option value="file">Upload File</option>
+                </select>
+            </div>
+
+            <div class="mb-3" id="bagianLink" style="display:none;">
+                <label class="form-label">Link / URL</label>
+                <input type="url" name="link" class="form-control" placeholder="https://contoh.com/artikel">
+            </div>
+
+            <div class="mb-3" id="bagianFile" style="display:none;">
+                <label class="form-label">Pilih File</label>
+                <input type="file" name="file_artikel" class="form-control" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx">
+                <small class="text-muted">Format: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX. Maksimal 10 MB.</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary"><i class="bi bi-plus-circle me-2"></i>Tambah</button>
+        </form>
+    </div>
+
+    <!-- DAFTAR -->
+    <div class="data-panel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 fw-bold mb-0">Daftar Materi & Referensi</h2>
+            <span class="badge bg-primary"><?= mysqli_num_rows($queryArtikel) ?> Item</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Judul</th>
+                        <th>Jenis</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php if (mysqli_num_rows($queryArtikel) > 0): ?>
+                    <?php $no = 1; while ($row = mysqli_fetch_assoc($queryArtikel)): ?>
+                        <tr>
+                            <td><?= $no++ ?></td>
+                            <td><?= htmlspecialchars($row['judul']) ?></td>
+                            <td>
+                                <?php if ($row['tipe'] === 'link'): ?>
+                                    <span class="badge bg-primary"><i class="bi bi-link-45deg"></i> Link</span>
+                                <?php else: ?>
+                                    <span class="badge bg-success"><i class="bi bi-file-earmark"></i> File</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if ($row['tipe'] === 'link'): ?>
+                                    <a href="<?= htmlspecialchars($row['link']) ?>" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-box-arrow-up-right"></i> Buka
+                                    </a>
+                                <?php else: ?>
+                                    <a href="../uploads/artikel/<?= htmlspecialchars($row['file']) ?>" target="_blank" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-file-earmark-arrow-up"></i> Buka File
+                                    </a>
+                                <?php endif; ?>
+                                <a href="hapus-artikel.php?id=<?= $row['id_artikel'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Yakin hapus item ini?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            Belum ada materi atau referensi.
+                        </td>
+                    </tr>
+                <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+</div>
+</div>
+
+<script>
+function ubahJenis() {
+    const tipe = document.getElementById('tipe').value;
+    document.getElementById('bagianLink').style.display = tipe === 'link' ? 'block' : 'none';
+    document.getElementById('bagianFile').style.display = tipe === 'file' ? 'block' : 'none';
+}
+</script>
+
+</body>
+</html>
