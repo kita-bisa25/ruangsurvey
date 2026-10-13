@@ -1,5 +1,5 @@
 <?php
-require_once "koneksi.php";
+require_once "koneksi.html";
 
 // Buat tabel otomatis jika belum ada
 mysqli_query($koneksi, "CREATE TABLE IF NOT EXISTS galeri (
@@ -241,7 +241,7 @@ $data = mysqli_query($koneksi, "SELECT * FROM galeri ORDER BY id_galeri DESC");
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg bg-white fixed-top">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="index.php">
+        <a class="navbar-brand fw-bold" href="index.html">
             <span class="brand-mark">RS</span> Ruang Survey
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
@@ -249,12 +249,12 @@ $data = mysqli_query($koneksi, "SELECT * FROM galeri ORDER BY id_galeri DESC");
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav ms-auto align-items-lg-center">
-                <li class="nav-item"><a class="nav-link" href="index.php">Beranda</a></li>
-                <li class="nav-item"><a class="nav-link" href="produk.php">Produk</a></li>
-                <li class="nav-item"><a class="nav-link" href="survey.php">Isi Survey</a></li>
-                <li class="nav-item"><a class="nav-link" href="tentang-kami.php">Tentang Kami</a></li>
-                <li class="nav-item"><a class="nav-link" href="kontak.php">Kontak</a></li>
-                <li class="nav-item"><a class="nav-link" href="visi-misi.php">Visi & Misi</a></li>
+                <li class="nav-item"><a class="nav-link" href="index.html">Beranda</a></li>
+                <li class="nav-item"><a class="nav-link" href="produk.html">Produk</a></li>
+                <li class="nav-item"><a class="nav-link" href="survey.html">Isi Survey</a></li>
+                <li class="nav-item"><a class="nav-link" href="tentang-kami.html">Tentang Kami</a></li>
+                <li class="nav-item"><a class="nav-link" href="kontak.html">Kontak</a></li>
+                <li class="nav-item"><a class="nav-link" href="visi-misi.html">Visi & Misi</a></li>
             </ul>
         </div>
     </div>
@@ -293,7 +293,7 @@ $data = mysqli_query($koneksi, "SELECT * FROM galeri ORDER BY id_galeri DESC");
                 <div class="col-12 text-center py-5">
                     <i class="bi bi-images fs-1" style="color: #087f79;"></i>
                     <p class="text-muted mt-3">Belum ada dokumentasi kegiatan.</p>
-                    <p class="text-muted small">Silakan upload foto melalui <a href="admin/galeri.php" style="color: #087f79;">Admin Panel</a></p>
+                    <p class="text-muted small">Silakan upload foto melalui <a href="admin/galeri.html" style="color: #087f79;">Admin Panel</a></p>
                 </div>
             <?php endif; ?>
         </div>

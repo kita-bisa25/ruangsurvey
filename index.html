@@ -1,5 +1,5 @@
 <?php
-require_once "koneksi.php";
+require_once "koneksi.html";
 
 // TOTAL RESPONDEN
 $totalRespondents = 0;
@@ -273,7 +273,7 @@ $queryGaleri = mysqli_query($koneksi, "SELECT id_galeri, gambar, judul, keterang
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg bg-white fixed-top">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="index.php">
+        <a class="navbar-brand fw-bold" href="index.html">
             <img src="assets/foto/index.jpg" alt="Ruang Survey Logo">
             Ruang Survey
         </a>
@@ -299,7 +299,7 @@ $queryGaleri = mysqli_query($koneksi, "SELECT id_galeri, gambar, judul, keterang
         <div class="company-header-top">
             <div class="header-left">
                 <div class="logo-box">
-                    <a href="index.php" class="text-decoration-none">
+                    <a href="index.html" class="text-decoration-none">
                         <div class="brand-logo">RS</div>
                     </a>
                 </div>

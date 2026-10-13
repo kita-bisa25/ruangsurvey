@@ -2,7 +2,7 @@
 session_start();
 
 if (isset($_SESSION['admin_login']) && $_SESSION['admin_login'] === true) {
-    header("Location: admin/dashboard.php");
+    header("Location: admin/dashboard.html");
     exit;
 }
 ?>
@@ -61,7 +61,7 @@ if (isset($_SESSION['admin_login']) && $_SESSION['admin_login'] === true) {
 <main class="container">
     <div class="auth-panel">
 
-        <a href="index.php" class="navbar-brand fw-bold d-inline-flex align-items-center mb-4">
+        <a href="index.html" class="navbar-brand fw-bold d-inline-flex align-items-center mb-4">
             <span class="brand-mark">RS</span>
             Ruang Survey
         </a>
@@ -73,7 +73,7 @@ if (isset($_SESSION['admin_login']) && $_SESSION['admin_login'] === true) {
             <div class="alert alert-danger">Username atau password salah.</div>
         <?php endif; ?>
 
-        <form action="proses-login.php" method="POST" class="mt-4">
+        <form action="proses-login.html" method="POST" class="mt-4">
             <div class="mb-3">
                 <label class="form-label" for="username">Username</label>
                 <input class="form-control" id="username" name="username" type="text" placeholder="Masukkan username" required autocomplete="username">

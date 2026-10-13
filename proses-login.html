@@ -12,11 +12,11 @@ if ($username === 'gody' && $password === 'gody123') {
     $_SESSION['admin_login'] = true;
     $_SESSION['admin_username'] = 'gody';
 
-    header("Location: admin/dashboard.php");
+    header("Location: admin/dashboard.html");
     exit;
 }
 
 
 // LOGIN GAGAL
-header("Location: login.php?error=1");
+header("Location: login.html?error=1");
 exit;
