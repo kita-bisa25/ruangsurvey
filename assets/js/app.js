@@ -52,7 +52,7 @@
           p_bantu: d.bantu_informasi, p_ganggu: d.ganggu_produktivitas, p_pengaruh: d.pengaruh_kehidupan, p_saran: d.saran || ""
         });
         busy(btn, false);
-        if (r.error) { console.error(r.error); R.notice("#pesan", "danger", "Gagal mengirim survey. Periksa isian Anda lalu coba lagi."); window.scrollTo(0, 0); return; }
+        if (r.error) { console.error(r.error); R.notice("#pesan", "danger", "Gagal mengirim survey: " + r.error.message); window.scrollTo(0, 0); return; }
         f.classList.add("d-none");
         $("#sukses").classList.remove("d-none");
         window.scrollTo(0, 0);
@@ -70,7 +70,7 @@
         busy(btn, true, "Mengirim...");
         var r = await sb.from("kontak").insert({ nama: d.nama.trim(), email: d.email.trim(), subjek: d.subjek.trim(), isi: d.isi.trim() });
         busy(btn, false);
-        if (r.error) { console.error(r.error); R.notice("#pesan", "danger", "Gagal mengirim pesan. Silakan coba lagi."); return; }
+        if (r.error) { console.error(r.error); R.notice("#pesan", "danger", "Gagal mengirim pesan: " + r.error.message); return; }
         f.reset();
         R.notice("#pesan", "success", "Pesan berhasil dikirim! Kami akan segera merespon.");
       });
@@ -97,7 +97,15 @@
         busy(btn, true, "Masuk...");
         var r = await sb.auth.signInWithPassword({ email: $("#email").value.trim(), password: $("#password").value });
         busy(btn, false);
-        if (r.error) { R.notice("#pesan", "danger", "Email atau password salah."); return; }
+        if (r.error) {
+          console.error(r.error);
+          var m = r.error.message || "", hint = "Login gagal: " + m;
+          if (/not confirmed/i.test(m)) hint = "Email belum dikonfirmasi. Di Supabase: Authentication > Users > klik user > Confirm user.";
+          else if (/invalid login/i.test(m)) hint = "Email atau password salah (atau user dibuat di project Supabase yang berbeda).";
+          else if (/api key|apikey|jwt/i.test(m)) hint = "Kunci API tidak valid. Periksa SUPABASE_ANON_KEY di assets/js/config.js.";
+          else if (/fetch|network/i.test(m)) hint = "Tidak bisa terhubung. Periksa SUPABASE_URL di assets/js/config.js dan koneksi internet.";
+          R.notice("#pesan", "danger", hint); return;
+        }
         location.replace("admin/dashboard.html");
       });
     }
